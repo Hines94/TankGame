@@ -20,6 +20,7 @@ ATank::ATank()
 void ATank::BeginPlay()
 {
 	Super::BeginPlay();
+	if(!ProjectileBlueprint) { UE_LOG(LogTemp, Warning, TEXT("No Projectile Blueprint")); }
 	
 }
 
@@ -54,13 +55,16 @@ void ATank::SetBarrelReference(UTankBarrel * BarrelToSet)
 
 void ATank::Fire()
 {
-	if (!Barrel) { return; }
-	else {
+	bool isReloaded = (FPlatformTime::Seconds() - LastFireTime) > ReloadTimeSeconds;
+	
+	if (Barrel && isReloaded && ProjectileBlueprint) 
+	{
 		//Spawn a projectile at the barrel reference
 		auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileBlueprint, 
 											Barrel->GetSocketLocation("Projectile"),
 											Barrel->GetSocketRotation("Projectile")
 											);
 		Projectile->LaunchProjectile(LaunchSpeed);
+		LastFireTime = FPlatformTime::Seconds();
 		}	
 }
