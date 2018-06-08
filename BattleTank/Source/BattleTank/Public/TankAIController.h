@@ -9,17 +9,18 @@
 class ATank;
 
 /**
- * 
+ *Controls move towards player and fires
  */
 UCLASS()
 class BATTLETANK_API ATankAIController : public AAIController
 {
 	GENERATED_BODY()
 
-private:
+protected:
 		virtual void BeginPlay() override;
 		virtual void Tick(float DeltaTime) override;
 
+private:
 		//TODO Make variable
 		float AcceptanceRadius = 3;
 };

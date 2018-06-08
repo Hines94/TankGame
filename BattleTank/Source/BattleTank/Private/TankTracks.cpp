@@ -4,13 +4,12 @@
 
 void UTankTracks::SetThrottle(float Throttle)
 {
-	auto Name = GetName();
-	//TODO Clamp throttle values so player cant cheat speed.
-
-	auto ForceApplied = GetForwardVector()*Throttle*TrackMaxDrivingForce;
+	auto ThrottleClamp = FMath::Clamp<float>(Throttle,-1,1);
+	auto ForceApplied = GetForwardVector()*ThrottleClamp*TrackMaxDrivingForce;
 	auto ForceLocation = GetComponentLocation();
 	auto TankRoot = Cast<UPrimitiveComponent>(GetOwner()->GetRootComponent());
+
+	
 	TankRoot->AddForceAtLocation(ForceApplied,ForceLocation);
 }
-
 

@@ -8,6 +8,15 @@
 //Forward Declaration
 class UTankBarrel; 
 class UTurret;
+class AProjectile;
+
+UENUM()
+enum class EFiringState : uint8
+{
+	Reloading,
+	Aiming,
+	Locked
+};
 
 //Holds Barrel's Properties and Elevate Method
 
@@ -17,14 +26,28 @@ class BATTLETANK_API UTankAimingComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+	void Initialise(UTurret*TurretToSet, UTankBarrel*BarrelToSet);
+
 	UTankAimingComponent();
-	void SetTurretReference(UTurret*TurretToSet);
-	void SetBarrelReference(UTankBarrel*BarrelToSet);
-	void AimAt(FVector HitLocation,float LaunchSpeed);
+	void AimAt(FVector HitLocation);
+	UFUNCTION(BlueprintCallable, Category = "Firing")
+	void Fire();
+
+protected:
+	UPROPERTY(BlueprintReadOnly,Category = "State")
+	EFiringState FiringState = EFiringState::Reloading;
+	UPROPERTY(EditDefaultsOnly, Category = "Firing")
+	float LaunchSpeed = 70000; // Starting value of 7000 m/s
 
 private:
 	UTurret * Turret = nullptr;
 	UTankBarrel * Barrel = nullptr;
 	void MoveBarrelTowards(FVector AimDirection) const;
 	void MoveTurretTowards(FVector AimDirection) const;
+	UPROPERTY(EditDefaultsOnly, Category = "Setup")
+	TSubclassOf<AProjectile> ProjectileBlueprint;
+	UPROPERTY(EditDefaultsOnly, Category = "Firing")
+	float ReloadTimeSeconds = 3;
+	double LastFireTime = 0;
 };

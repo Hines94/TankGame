@@ -1,13 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Jack Hines.
 
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "TankPlayerController.generated.h" //Must be the last include
 
-class ATank;
+class UTankAimingComponent;
 /**
- * 
+ *Responsible for helping the player aim.
  */
 UCLASS()
 class BATTLETANK_API ATankPlayerController : public APlayerController
@@ -17,8 +17,12 @@ class BATTLETANK_API ATankPlayerController : public APlayerController
 public:
 
 	
+protected:
+	UFUNCTION(BlueprintImplementableEvent, Category = "Setup")
+	void FoundAimingComponent(UTankAimingComponent*AimingCompRef);
+
 private:
-	ATank * GetControlledTank() const;
+	
 
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaTime ) override;

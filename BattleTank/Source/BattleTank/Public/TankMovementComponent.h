@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Jack Hines.
 
 #pragma once
 
@@ -17,19 +17,20 @@ class BATTLETANK_API UTankMovementComponent : public UNavMovementComponent
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintCallable, Category = Setup)
+	UFUNCTION(BlueprintCallable, Category = "Setup")
 	void Initialise(UTankTracks*LeftTrackToSet, UTankTracks*RightTrackToSet);
 
-	UFUNCTION(BlueprintCallable, Category = Input)
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void IntendMoveForward(float Throw);
 
-	UFUNCTION(BlueprintCallable, Category = Input)
+	UFUNCTION(BlueprintCallable, Category = "Input")
 	void IntendMoveRight(float Throw);
-	
-	//TODO Check Best Protection
-	void RequestDirectMove(const FVector& MoveVelocity, bool bForceMaxSpeed) override;
 
 private:
 	UTankTracks* LeftTrack = nullptr;
 	UTankTracks* RightTrack = nullptr;
+
+	//Called from the pathfinding logic by the AI controllers
+	void RequestDirectMove(const FVector& MoveVelocity, bool bForceMaxSpeed) override;
+
 };
