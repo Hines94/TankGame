@@ -41,6 +41,10 @@ protected:
 	float LaunchSpeed = 70000; // Starting value of 7000 m/s
 
 private:
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
+	virtual void BeginPlay() override;
+	bool IsBarrelMoving();
+	FVector AimDirection;
 	UTurret * Turret = nullptr;
 	UTankBarrel * Barrel = nullptr;
 	void MoveBarrelTowards(FVector AimDirection) const;
@@ -50,4 +54,5 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Firing")
 	float ReloadTimeSeconds = 3;
 	double LastFireTime = 0;
+	
 };

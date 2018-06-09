@@ -12,8 +12,31 @@ UTankAimingComponent::UTankAimingComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = false;
+	PrimaryComponentTick.bCanEverTick = true;
 }
+
+void UTankAimingComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+{
+	if ((FPlatformTime::Seconds() - LastFireTime) < ReloadTimeSeconds)
+	{
+		FiringState = EFiringState::Reloading;
+	}
+	else if (IsBarrelMoving())
+	{
+		FiringState = EFiringState::Aiming;
+	}
+	else
+	{
+		FiringState = EFiringState::Locked;
+	}
+}
+
+void UTankAimingComponent::BeginPlay()
+{
+	//So that first fire is afer initial reload.
+	LastFireTime = FPlatformTime::Seconds();
+}
+
 
 void UTankAimingComponent::Initialise(UTurret*TurretToSet, UTankBarrel*BarrelToSet)
 {
@@ -42,11 +65,25 @@ void UTankAimingComponent::AimAt(FVector HitLocation)
 																		);
 		if(bHaveAimSolution)
 		{
-			auto AimDirection = OutLaunchVelocity.GetSafeNormal();
+			FVector AimDirection = OutLaunchVelocity.GetSafeNormal();
 			MoveBarrelTowards(AimDirection);
 			MoveTurretTowards(AimDirection);
 		}
 
+}
+
+bool UTankAimingComponent::IsBarrelMoving()
+{
+	if(!ensure(Barrel)) { return false; }
+	auto CurrentPos = Barrel->GetForwardVector();
+	if (CurrentPos.Equals(AimDirection, 0.01))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection) const
@@ -73,11 +110,10 @@ void UTankAimingComponent::MoveTurretTowards(FVector AimDirection) const
 
 void UTankAimingComponent::Fire()
 {
-	bool isReloaded = (FPlatformTime::Seconds() - LastFireTime) > ReloadTimeSeconds;
-	if (!ensure(Barrel) || !ProjectileBlueprint) { return; }
-
-	if (isReloaded)
+	
+	if (FiringState != EFiringState::Reloading)
 	{
+		if (!ensure(Barrel) || !ProjectileBlueprint) { return; }
 		//Spawn a projectile at the barrel reference
 		auto Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileBlueprint,
 			Barrel->GetSocketLocation("Projectile"),

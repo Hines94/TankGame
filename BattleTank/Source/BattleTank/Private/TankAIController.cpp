@@ -16,7 +16,6 @@ void ATankAIController::Tick(float DeltaTime)
 
 	auto AimingComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
 	auto PlayerTank = Cast<ATank>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	UE_LOG(LogTemp,Warning,TEXT ("Triggered"))
 	if (!ensure(AimingComponent && PlayerTank )) { return; }
 	else
 	{
