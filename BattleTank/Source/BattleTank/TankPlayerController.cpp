@@ -25,6 +25,7 @@ void ATankPlayerController::Tick( float DeltaTime )
 
 void ATankPlayerController::AimTowardsCrosshair()
 {
+	if (!GetPawn()) { return; } //Eg depossesed
 	auto AimingComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
 	if (!ensure(AimingComponent)) {return;}
 	FVector HitLocation; //OutPerameter
@@ -45,10 +46,10 @@ bool ATankPlayerController::GetSightRayHitLocation(FVector& OutHitLocation) cons
 	if (GetLookDirection(ScreenLocation, LookDirection))
 	{
 		//Use Line trace to see what we hit 
-		GetLookVectorHitLocation(LookDirection,OutHitLocation);
+		return GetLookVectorHitLocation(LookDirection,OutHitLocation);
 	}
-	//Line Trace along that LookDirection to see where we hit
-	return true;
+	//not hit anything - false
+	return false;
 }
 
 bool ATankPlayerController::GetLookDirection(FVector2D ScreenLocation, FVector& LookDirection) const
