@@ -11,10 +11,7 @@ void ATankPlayerController::BeginPlay()
 	auto AimingComponent = GetPawn()->FindComponentByClass<UTankAimingComponent>();
 
 	if (!ensure(AimingComponent)) { return; }
-	else
-	{
-		FoundAimingComponent(AimingComponent);
-	}
+	FoundAimingComponent(AimingComponent);
 }
 
 void ATankPlayerController::Tick( float DeltaTime )

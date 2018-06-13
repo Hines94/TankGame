@@ -22,5 +22,6 @@ protected:
 
 private:
 		//TODO Make variable
-		float AcceptanceRadius = 3;
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float AcceptanceRadius = 300000;
 };
