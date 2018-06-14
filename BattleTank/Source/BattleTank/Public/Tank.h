@@ -20,7 +20,11 @@ public:
 
 	// Called to bind functionality to input
 	ATank();
-	
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	UPROPERTY(EditDefaultsOnly, Category = "Startup")
+	int32 StartingHealth = 100;
+	UPROPERTY(EditDefaultsOnly, Category = "Startup")
+	int32 CurrentHealth = StartingHealth;
 private:
 
 };
