@@ -4,6 +4,7 @@
 #include "TankPlayerController.h"
 #include "TankAimingComponent.h"
 #include "Engine/World.h"
+#include "Tank.h"
 
 void ATankPlayerController::BeginPlay()
 {
@@ -13,6 +14,23 @@ void ATankPlayerController::BeginPlay()
 	if (!ensure(AimingComponent)) { return; }
 	FoundAimingComponent(AimingComponent);
 }
+void ATankPlayerController::SetPawn(APawn*InPawn)
+{
+	Super::SetPawn(InPawn);
+	if (InPawn)
+	{
+		auto PosessedTank = Cast<ATank>(InPawn);
+		if (!PosessedTank) { return; }
+		//Subscribe our local method to the tanks death event
+		PosessedTank->OnDeath.AddUniqueDynamic(this, &ATankPlayerController::OnPosessedTankDeath);
+	}
+}
+
+void ATankPlayerController::OnPosessedTankDeath()
+{
+	StartSpectatingOnly();
+}
+
 
 void ATankPlayerController::Tick( float DeltaTime )
 {
@@ -68,7 +86,7 @@ bool ATankPlayerController::GetLookVectorHitLocation(FVector LookDirection,FVect
 	auto StartLocation = PlayerCameraManager->GetCameraLocation();
 	auto EndLocation = StartLocation + LookDirection * LineTraceRange;
 
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation,EndLocation ,ECC_Visibility)) {
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation,EndLocation ,ECC_Camera)) {
 		HitLocation = HitResult.Location;
 		return true;
 	}

@@ -17,6 +17,7 @@ UTankAimingComponent::UTankAimingComponent()
 
 void UTankAimingComponent::BeginPlay()
 {
+	Super::BeginPlay();
 	// So that first first is after initial reload
 	LastFireTime = FPlatformTime::Seconds();
 }
@@ -92,18 +93,18 @@ void UTankAimingComponent::AimAt(FVector HitLocation)
 	// If no solution found do nothing
 }
 
-void UTankAimingComponent::MoveBarrelTowards(FVector AimDirection)
+void UTankAimingComponent::MoveBarrelTowards(FVector TargetAimDirection)
 {
 	if (!ensure(Barrel) || !ensure(Turret)) { return; }
 
 	// Work-out difference between current barrel roation, and AimDirection
 	auto BarrelRotator = Barrel->GetForwardVector().Rotation();
-	auto AimAsRotator = AimDirection.Rotation();
+	auto AimAsRotator = TargetAimDirection.Rotation();
 	auto DeltaRotator = AimAsRotator - BarrelRotator;
 
 	// Always yaw the shortest way
 	Barrel->Elevate(DeltaRotator.Pitch);
-	if (DeltaRotator.Yaw < 180)
+	if (FMath::Abs(DeltaRotator.Yaw) < 180)
 	{
 		Turret->Rotate(DeltaRotator.Yaw);
 	}
