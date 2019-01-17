@@ -9,7 +9,7 @@
 class UPhysicsConstraintComponent;
 class USphereComponent;
 
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class BATTLETANK_API ASprungWheel : public AActor
 {
 	GENERATED_BODY()
@@ -18,9 +18,17 @@ public:
 	// Sets default values for this actor's properties
 	ASprungWheel();	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	//virtual void Tick(float DeltaTime) override;
 
-	void AddDrivingForce(float ForceMagnitude);
+	//Set from tracks
+	AActor* TankOwner = nullptr;
+	TArray <AActor*> OtherWheels;
+	int32 LineTraceOffset = 5;
+
+	bool CheckIfGroundContact();
+
+	void ApplyForce(float Force);
+	//void AddDrivingForce(float ForceMagnitude);
 
 protected:
 	// Called when the game starts or when spawned
@@ -36,8 +44,7 @@ private:
 	UPhysicsConstraintComponent* MassAxleConstraint = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UPhysicsConstraintComponent* AxleWheelConstraint = nullptr;
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-	void ApplyForce();
-	float TotalForceMagnitudeThisFrame = 0.f;
+	//UFUNCTION()
+	//void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	//float TotalForceMagnitudeThisFrame = 0.f;
 };

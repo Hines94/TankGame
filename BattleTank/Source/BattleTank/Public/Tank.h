@@ -28,6 +28,7 @@ public:
 	FTankDelegate OnDeath;
 	// Called to bind functionality to input
 	ATank();
+	class UTankMovementComponent * GetTankMovementComponent();
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	UPROPERTY(EditDefaultsOnly, Category = "Startup")
 	int32 StartingHealth = 100;

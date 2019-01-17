@@ -2,6 +2,7 @@
 
 #include "Tank.h"
 #include "TankAimingComponent.h"
+#include "TankMovementComponent.h"
 
 float ATank::GetHealthPercent() const
 {
@@ -22,9 +23,15 @@ void ATank::BeginPlay()
 	Super::BeginPlay();
 
 	auto AimingComponent = this->FindComponentByClass<UTankAimingComponent>();
-
+	
 	CurrentHealth = StartingHealth;
 
+}
+
+UTankMovementComponent* ATank::GetTankMovementComponent()
+{
+	auto MovementComponent = this->FindComponentByClass<UTankMovementComponent>();
+	return MovementComponent;
 }
 
 

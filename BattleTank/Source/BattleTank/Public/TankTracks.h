@@ -19,13 +19,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void SetThrottle(float Throttle);
 
-	//Max force per track in newtons
+	float AdditionalForceFromDiff = 0;
+
 	UPROPERTY(EditDefaultsOnly)
-	float TrackMaxDrivingForce = 40000000; //Assume 40tonne tank and 1g acceleration
+	int32 WheelLinetraceOffset = 5;
+		
+	class UTankMovementComponent* MasterMovementComp = nullptr;
+
+	float GetTrackVelocity();
+
+	float GetThrottle();
+	
+	void MasterDriveTrack(float CurrentDriveForce);
+
+protected:
+	//Called every frame
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	
 
 private:
 	UTankTracks();
 	TArray<class ASprungWheel*>GetWheels() const;
 	virtual void BeginPlay() override;
-	void DriveTrack(float CurrentThrottle);
+	void DriveTrack(float CurrentThrottle, float Force);
+	//how many wheels were on the floor last frame?
+	int32 PreviousContacts = 0;
+	float CurrentTrackThrottle = 0;
+	FVector PriorLoc;
+	float PriorSecs = 0;
 };
