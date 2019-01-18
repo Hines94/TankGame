@@ -61,6 +61,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "VehicleInfo")
 	float GetCurrentRPM();
 	UFUNCTION(BlueprintCallable, Category = "VehicleInfo")
+	float GetCurrentGear();
+	UFUNCTION(BlueprintCallable, Category = "VehicleInfo")
+	float GetCurrentRatio();
+	UFUNCTION(BlueprintCallable, Category = "VehicleInfo")
 	float GetCurrentTorque();
 	UFUNCTION(BlueprintCallable, Category = "VehicleInfo")
 	float GetCurrentRPMBump();
@@ -77,6 +81,10 @@ public:
 	float DiffTransferResolution = 0.5;
 	
 	void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction);
+
+	void AddDownForce(float Force);
+
+
 
 	float CalculateTankOverallVeloctiy(float & OutAcceleration);
 
@@ -125,8 +133,16 @@ private:
 	//Called from the pathfinding logic by the AI controllers
 	void RequestDirectMove(const FVector& MoveVelocity, bool bForceMaxSpeed) override;
 
-	int32 CurrentGear = 0;
 	float CurrentVelocity = 0;
+	
+	//Gearbox
+	int32 CurrentGear = 0;
+	void CheckChangeGear(float DeltaTime);
+	bool bChangingUp = false;
+	bool bChangingDown = false;
+	float ChangingTimer = 0;
+	float CurrentGearRatio = 0;
+	bool bNeutralGearUp = false;
 
 	//Prior location of tank for turn on spot
 	FVector PriorLoc;
@@ -138,6 +154,7 @@ private:
 	//For smoothing of RPM Changes
 	float PriorRPM = 0;
 	
+	float ForwardInput = 0;
 
 	//Methods
 	float GetRPMFromAxle();
@@ -145,6 +162,7 @@ private:
 	float GetGearToruqe(float EngineRPM);
 	float BumpRPMIfNeccessary(float RPMIn, float DeltaSecs, float CurrentAcceleration);
 	float ApplyPunisments(float FinalPower, float CurrentAcceleration);
+	float GetCurrentRatioMethod();
 
 	//for headsup / debug
 	float CurrentRPM = 0;
@@ -152,4 +170,5 @@ private:
 	float CurrentRPMBump = 0;
 	float VelocityPunishment = 0;
 	float AccelerationPunishment = 0;
+
 };

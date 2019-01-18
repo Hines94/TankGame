@@ -115,3 +115,20 @@ void UTankTracks::DriveTrack(float CurrentThrottle,float Force)
 		
 	}
 }
+
+void UTankTracks::ApplyDownForce(float Force)
+{
+	auto Wheels = GetWheels();
+	int32 WheelNum = Wheels.Num();
+	auto ForcePerWheel = Force / WheelNum;
+
+	UE_LOG(LogTemp, Warning, TEXT("Force: %f"), (ForcePerWheel / 10000));
+	for (ASprungWheel* Wheel : Wheels)
+	{
+		if (Wheel->CheckIfGroundContact())
+		{
+			Wheel->ApplyDownForce(ForcePerWheel);
+		}
+
+	}
+}

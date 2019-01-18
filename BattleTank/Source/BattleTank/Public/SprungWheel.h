@@ -28,7 +28,7 @@ public:
 	bool CheckIfGroundContact();
 
 	void ApplyForce(float Force);
-	//void AddDrivingForce(float ForceMagnitude);
+	void ApplyDownForce(float Force);
 
 protected:
 	// Called when the game starts or when spawned

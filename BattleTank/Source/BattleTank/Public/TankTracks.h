@@ -29,6 +29,8 @@ public:
 	float GetTrackVelocity();
 
 	float GetThrottle();
+
+	void ApplyDownForce(float Force);
 	
 	void MasterDriveTrack(float CurrentDriveForce);
 

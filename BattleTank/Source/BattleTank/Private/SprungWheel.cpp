@@ -109,3 +109,9 @@ void ASprungWheel::ApplyForce(float Force)
 	//apply slight down force to keep track stuck to ground - friction not woking hard enough
 	//Wheel->AddForce((-Axle->GetUpVector()) *Force* 0.05);
 }
+
+void ASprungWheel::ApplyDownForce(float Force)
+{
+	FVector ForceDir = (Axle->GetUpVector());
+	Axle->AddForce((ForceDir)*Force);
+}

@@ -3,6 +3,8 @@
 #include "TankMovementComponent.h"
 #include "TankTracks.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
+#include "Tank.h"
 
 UTankMovementComponent::UTankMovementComponent()
 {
@@ -23,7 +25,7 @@ void UTankMovementComponent::IntendMoveForward(float Throw)
 	if (!ensure(LeftTrack &&RightTrack)) { return; }
 	LeftTrack->SetThrottle(Throw);
 	RightTrack->SetThrottle(Throw);
-
+	ForwardInput = Throw;
 }
 
 void UTankMovementComponent::IntendMoveRight(float Throw)
@@ -38,6 +40,14 @@ void UTankMovementComponent::IntendMoveRight(float Throw)
 float UTankMovementComponent::GetCurrentRPM()
 {
 	return CurrentRPM;
+}
+float UTankMovementComponent::GetCurrentGear()
+{
+	return CurrentGear;
+}
+float UTankMovementComponent::GetCurrentRatio()
+{
+	return CurrentGearRatio;
 }
 float UTankMovementComponent::GetCurrentTorque()
 {
@@ -97,6 +107,7 @@ void UTankMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 	if (CurrentVelocity < MaxVelocityForSpotTurnBump && ForwardInput == 0)
 	{
+		AddDownForce(FinalDriveForce);
 		//Linear interp
 		float AdditionalForceMulti = (MaxVelocityForSpotTurnBump - CurrentVelocity)*RotateOnSpotPowerMult;
 		RightTrack->MasterDriveTrack(FinalDriveForce * AdditionalForceMulti);
@@ -107,7 +118,76 @@ void UTankMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		RightTrack->MasterDriveTrack(FinalDriveForce);
 		LeftTrack->MasterDriveTrack(FinalDriveForce);
 	}
+	CheckChangeGear(DeltaTime);
 }
+
+void UTankMovementComponent::AddDownForce(float Force)
+{
+	LeftTrack->ApplyDownForce(Force/2);
+	RightTrack->ApplyDownForce(Force / 2);
+}
+
+void UTankMovementComponent::CheckChangeGear(float DeltaTime)
+{
+	//Enough gears?
+	if (TransmissionSetup.ForwardGears.Num() > CurrentGear)
+	{
+		//If our rpm is high enough - change up
+		if (TransmissionSetup.ForwardGears[CurrentGear].UpRatio*EngineSetup.MaxRPM <= CurrentRPM)
+		{
+			//Already changing up?
+			if (bChangingUp == true)
+			{
+				bNeutralGearUp = true;
+				if (ChangingTimer <= 0)
+				{
+					bNeutralGearUp = false;
+					CurrentGear += 1;
+					bChangingUp = false;
+				}
+				//else not ready just down timer
+				ChangingTimer -= DeltaTime;
+			}
+			bChangingUp = true;
+			ChangingTimer = TransmissionSetup.GearAutoBoxLatency + TransmissionSetup.GearSwitchTime;
+			//In Up Band - return
+			return;
+		}
+	}
+	if (CurrentGear > 0)
+	{
+		if (TransmissionSetup.ForwardGears[CurrentGear-1].DownRatio*EngineSetup.MaxRPM <= CurrentRPM)
+		{
+			//Else if chaning down
+			//Enough gears?
+		
+			//Already changing down?
+			if (bChangingDown == true)
+			{
+				bNeutralGearUp = true;
+				if (ChangingTimer <= 0)
+				{
+					bNeutralGearUp = false;
+					CurrentGear -= 1;
+					bChangingDown = false;
+				}
+				//else not ready just down timer
+				ChangingTimer -= DeltaTime;
+			}
+			//else just about to start changing down
+			bChangingDown = true;
+			ChangingTimer = TransmissionSetup.GearAutoBoxLatency + TransmissionSetup.GearSwitchTime;
+			//In down band - return
+			return;
+		}
+		
+	}
+	//Else not changing at all
+	bChangingUp = false;
+	bChangingDown = false;
+	bNeutralGearUp = false;
+}
+
 float UTankMovementComponent::ApplyPunisments(float FinalPower, float CurrentAcceleration)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("PowerIn: %f"), FinalPower);
@@ -204,18 +284,8 @@ float UTankMovementComponent::GetRPMFromAxle()
 	TrackVelocity += FMath::Abs(LeftTrack->GetTrackVelocity());
 	//UE_LOG(LogTemp, Warning, TEXT("Vel: %f"), TrackVelocity);
 	float GearRatio = 1;
-	if (CurrentGear > 0)
-	{
-		GearRatio = TransmissionSetup.ForwardGears[CurrentGear].Ratio;
-	}
-	else if(CurrentGear < 0)
-	{
-		GearRatio = TransmissionSetup.ReverseGearRatio;
-	}
-	else
-	{
-		GearRatio = TransmissionSetup.NeutralGearUpRatio;
-	}
+	GearRatio = GetCurrentRatioMethod();
+
 	float RPM = GearRatio * TrackVelocity;
 	RPM = RPM * TransmissionSetup.FinalRatio;
 	RPM = ((RPM * 60)/2);
@@ -239,9 +309,24 @@ float UTankMovementComponent::GetEngineToruqe(float RPM)
 float UTankMovementComponent::GetGearToruqe(float EngineTorque)
 {
 	float GearRatio = 1;
+	GearRatio = GetCurrentRatioMethod();
+	//debug
+	CurrentGearRatio = GearRatio;
+
+
+	float Torque = GearRatio * EngineTorque;
+	Torque = Torque * TransmissionSetup.FinalRatio;
+	Torque = Torque * TransmissionSetup.TransmissionEfficiency;
+
+	return Torque;
+}
+
+float UTankMovementComponent::GetCurrentRatioMethod()
+{
+	float GearRatio = 1;
 	if (CurrentGear > 0)
 	{
-		GearRatio = TransmissionSetup.ForwardGears[CurrentGear].Ratio;
+		GearRatio = TransmissionSetup.ForwardGears[CurrentGear - 1].Ratio;
 	}
 	if (CurrentGear < 0)
 	{
@@ -251,9 +336,10 @@ float UTankMovementComponent::GetGearToruqe(float EngineTorque)
 	{
 		GearRatio = TransmissionSetup.NeutralGearUpRatio;
 	}
-	float Torque = GearRatio * EngineTorque;
-	Torque = Torque * TransmissionSetup.FinalRatio;
-	Torque = Torque * TransmissionSetup.TransmissionEfficiency;
+	if (bNeutralGearUp == true)
+	{
+		GearRatio = TransmissionSetup.NeutralGearUpRatio * GearRatio;
+	}
 
-	return Torque;
+	return GearRatio;
 }
